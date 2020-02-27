@@ -247,7 +247,11 @@ someArithmeticCalculations =
     - если n < 0, то "negative"
 -}
 tellSign :: Int -> String
-tellSign n = error "not implemented"
+tellSign n
+  | n == 0 = "zero"
+  | n > 0 = "positive"
+  | otherwise = "negative"
+
 
 {-
   `howManyDigits` возвращает количество цифр целого числа `n`:
@@ -256,7 +260,9 @@ tellSign n = error "not implemented"
     - если n >= 100, то "three-digit or more"
 -}
 howManyDigits :: Int -> String
-howManyDigits n = error "not implemented"
+howManyDigits n = 
+  let digitsCount = div (abs n) 10 in
+    if digitsCount == 0 then "single" else (if digitsCount < 10 then "two-digit" else "three-digit or more")
 
 {-
   `describeNumber` возвращает полное описание целого числа, используя
@@ -267,8 +273,8 @@ howManyDigits n = error "not implemented"
     - если n >= 100, то "positive three-digit or more"
 -}
 describeNumber :: Int -> String
-describeNumber n = error "not implemented"
-
+describeNumber n = tellSign n ++ " " ++ howManyDigits n
+ 
 -- </Задачи для самостоятельного решения>
 
 -- Рекурсия:
@@ -303,7 +309,10 @@ makeZero x =
   больших чисел.
 -}
 factorial :: Integer -> Integer
-factorial n = error "not implemented"
+factorial n
+  | n == 0 = 1
+  | n > 0 = factorial (n-1) * n
+  | otherwise = 0
 
 {-
   На вход приходит целое число. Необходимо вернуть количество цифр:
@@ -312,7 +321,9 @@ factorial n = error "not implemented"
     - если n = 144545, то 6
 -}
 digitsCount :: Int -> Int
-digitsCount n = error "not implemented"
+digitsCount n
+  | (abs n) < 10 = 1
+  | otherwise = 1 + digitsCount (div n 10)
 
 -- </Задачи для самостоятельного решения>
 
@@ -347,7 +358,7 @@ makeZero' x = makeZero' (x - 1)
 makeZero'' :: Int -> Int
 makeZero'' x = case x of
   0 -> 0
-  x -> makeZero' (x - 1)
+  x -> makeZero'' (x - 1)
 
 {-
   На самом деле компилятор преобразовывает все уравнения, как в функции `makeZero'`,
