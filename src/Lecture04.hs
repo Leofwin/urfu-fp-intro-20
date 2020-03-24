@@ -329,9 +329,13 @@ newtype AdoptedAnimal = AdoptedAnimal
     - Month
     - Year
 -}
-showDate :: Int -> Int -> Int -> String
-showDate day month year =
-  "Day " ++ show day ++ " of " ++ show month ++ " month, year " ++ show year
+newtype Day = Day { getDay :: Int} deriving (Eq, Show) 
+newtype Month = Month { getMonth :: Int} deriving (Eq, Show) 
+newtype Year = Year { getYear :: Int} deriving (Eq, Show) 
+ 
+showDate :: Day -> Month -> Year -> String 
+showDate day month year = 
+  "Day " ++ show (getDay day) ++ " of " ++ show (getMonth month) ++ " month, year " ++ show (getYear year)
 
 -- </Задачи для самостоятельного решения>
 
@@ -370,7 +374,10 @@ showDate day month year =
   - uncons [1,2,3] ~> (Just 1, [2, 3])
 -}
 uncons :: [a] -> (Maybe a, [a])
-uncons l = error "not implemented"
+uncons [] = (Nothing, [])
+uncons (i : l) = (Just i, l)
+
+
 
 {-
   zipMaybe возвращает пару значений, если оба значения не Nothing:
@@ -380,7 +387,9 @@ uncons l = error "not implemented"
   - zipMaybe (Just "hey") (Just 2) ~> Just ("hey", 2)
 -}
 zipMaybe :: Maybe a -> Maybe b -> Maybe (a, b)
-zipMaybe a b = error "not implemented"
+zipMaybe Nothing _ = Nothing
+zipMaybe _ Nothing = Nothing
+zipMaybe (Just a) (Just b) = Just (a, b)
 
 -- </Задачи для самостоятельного решения>
 
@@ -414,8 +423,20 @@ zipMaybe a b = error "not implemented"
     - если это лев:
       - сообщать "Can't adopt lions :("
 -}
+
+{-
+data AnimalType = Lion | Cat | Dog | Duck deriving (Eq, Show)
+
+data AnimalWithType = AnimalWithType Int String AnimalType deriving (Eq, Show)
+-}
 adopt :: AnimalWithType -> Either String AdoptedAnimal
-adopt = error "not implemented"
+adopt (AnimalWithType a ('D':c) Cat) = Left "Can't adopt cat"
+adopt (AnimalWithType a [] Cat) = Left "Can't adopt cat"
+adopt (AnimalWithType a (b:c) Cat) = if a < 5 then Right (AdoptedAnimal (AnimalWithType a (b:c) Cat)) else Left "Can't adopt cat"
+adopt (AnimalWithType a b Dog) = if a > 1 then Right (AdoptedAnimal (AnimalWithType a b Dog)) else Left "Can't adopt dog"
+adopt (AnimalWithType a b Duck) = if b == "Daisy" then Right (AdoptedAnimal (AnimalWithType a b Duck)) else Left "Quack"
+adopt (AnimalWithType a b Lion) = Left "Can't adopt lions :("
+
 
 -- </Задачи для самостоятельного решения>
 
@@ -469,21 +490,21 @@ adopt = error "not implemented"
 
   Посчитайте cardinality для:
 
-  1. |Bool| = 
+  1. |Bool| = 2
 
-  2. |(Bool, Bool)| =
+  2. |(Bool, Bool)| = 4
 
     data (a, b) = (a, b)
 
-  3. |Maybe a| =
+  3. |Maybe a| = |a| + 1
 
     data Maybe a = Nothing | Just a
 
-  4. |Bool -> Bool| =
+  4. |Bool -> Bool| = 4
 
-  5. |Bool -> (Bool, Bool)| =
+  5. |Bool -> (Bool, Bool)| = 16
 
-  6. |Bool -> (Bool, a)| =
+  6. |Bool -> (Bool, a)| = 4 * |a|^2
 
 -}
 
@@ -494,21 +515,26 @@ adopt = error "not implemented"
   и вспомогательные функции. Тесты написаны так, что вспомогательные функции
   зависят друг друга. 
 -}
-data Tree a
-  {-
-    Определите конструкторы для бинарного дерева:
-      - лист
-      - узел с значением и левой и правой ветками
-  -}
+data Tree a = Empty | Tree
+  { value :: a
+  , left :: Tree a
+  , right :: Tree a
+  } 
   deriving (Eq, Show)
+    -- Определите конструкторы для бинарного дерева:
+    --   - лист
+    --   - узел с значением и левой и правой ветками
+  
 
 -- Возвращает пустое дерево
 empty :: Tree a
-empty = error "not implemented"
+empty = Empty
 
 -- Возвращает True, если дерево - это лист
 isLeaf :: Tree a -> Bool
-isLeaf t = error "not implemented"
+isLeaf Empty = True
+isLeaf (Tree {left = Empty, right = Empty}) = True
+isLeaf _ = False
 
 -- Возвращает True, если дерево - не лист
 isNode :: Tree a -> Bool
@@ -516,15 +542,20 @@ isNode = not . isLeaf
 
 -- Если дерево это нода, то возвращает текущее значение ноды
 getValue :: Tree a -> Maybe a
-getValue t = error "not implemented"
+getValue Empty = Nothing
+getValue (Tree {value = v}) = Just v
+
 
 -- Если дерево это нода, то возвращает левое поддерево
 getLeft :: Tree a -> Maybe (Tree a)
-getLeft t = error "not implemented"
+getLeft Empty = Nothing
+getLeft (Tree {left = v}) = Just v
+
 
 -- Если дерево это нода, то возвращает правое поддерево
 getRight :: Tree a -> Maybe (Tree a)
-getRight t = error "not implemented"
+getRight Empty = Nothing
+getRight (Tree {right = v}) = Just v
 
 {-
   Вставка значения в дерево:
@@ -541,7 +572,10 @@ getRight t = error "not implemented"
    три значения: GT, EQ, LT. Попробуйте поиграться в repl.
 -} 
 insert :: Ord a => a -> Tree a -> Tree a
-insert v t = error "not implemented"
+insert v Empty = Tree {value = v, left = Empty, right = Empty}
+insert v (Tree {value = v', left = left, right = right}) = if compare v v' == GT
+  then Tree {value = v', left = left, right = insert v right}
+  else Tree {value = v', right = right, left = insert v left}
 
 {-
   Проверка наличия значения в дереве:
@@ -553,6 +587,10 @@ insert v t = error "not implemented"
     - isElem 4 $ insert 1 $ insert 3 $ insert 2 empty ~> False
 -}
 isElem :: Ord a => a -> Tree a -> Bool
-isElem v tree = error "not implemented"
+isElem v Empty = False
+isElem v (Tree {value = value, left = left, right = right}) = let result = compare v value in
+  if result == EQ
+    then True
+    else isElem v (if result == LT then left else right)
 
 -- </Задачи для самостоятельного решения>
