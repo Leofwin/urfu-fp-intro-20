@@ -327,16 +327,12 @@ toListH :: List a -> [a]
 toListH = \case
   Nil -> []
   x :. xs -> x : toListH xs
--- Если нужно через foldr
--- toListH list = foldr (\x a -> x : a) [] list
 
 -- И обратно
 fromListH :: [a] -> List a
 fromListH = \case
   [] -> Nil
   x : xs -> x :. fromListH xs
--- Если нужно через P.foldr
--- fromListH list = P.foldr (\x a -> x :. a) Nil list
 
 -- </Задачи для самостоятельного решения>
 
@@ -429,7 +425,6 @@ concat ls = P.foldr (\b a -> b ++ a) [] ls
 
     P.foldr :: (a -> b -> b) -> b -> [a] -> b
 -}
-
 intercalate :: [a] -> [[a]] -> [a]
 intercalate sep [] = []
 intercalate sep ls =
