@@ -43,11 +43,12 @@ module Lecture05 where
     https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes#/media/File:Sieve_of_Eratosthenes_animation.gif
 -}
 sieve :: [Integer] -> [Integer]
-sieve xs = error "not implemented"
+sieve [] = []
+sieve (x : xs) = x : sieve (filter (\v -> mod v x /= 0) xs)
 
 -- Функция, возвращающая n-ое простое число. Для её реализации используйте функцию sieve
 nthPrime :: Int -> Integer
-nthPrime n = error "not implemented"
+nthPrime n = last (take n (sieve [2..]))
 
 {-
     Недавно в интервью Forbes с Сергеем Гуриевым Андрей Мовчан решил показать, что он
@@ -71,11 +72,11 @@ nthPrime n = error "not implemented"
 -- Возвращает бесконечный список ВВП на годы и годы вперёд
 -- yearGDP 100 0.1 ~> [100, 100.1, 100.20009(9), 100.3003.., ...]
 yearGDP :: Double -> Double -> [Double]
-yearGDP now percent = error "not implemented"
+yearGDP now percent = iterate (\x -> x * (1 + percent / 100)) now
 
 -- Возвращает количество лет, которые нужны Китаю, чтобы догнать США в текущих условиях
 inHowManyYearsChinaWins :: Int
-inHowManyYearsChinaWins = error "not implemented"
+inHowManyYearsChinaWins = length (takeWhile (\(x, y) -> x < y) (zip (yearGDP 10000 6) (yearGDP 66000 2))) + 1
 
 {-
   Пусть у нас есть некоторая лента событий, каждое сообщение в которой говорит,
@@ -115,7 +116,10 @@ allCountries =
   , Country "USA" 0
   , Country "GreatBritain" 0 ]
 
+countSick :: String -> [Country] -> Integer
+countSick name events = sum (map (\(Country n' v') -> if n' == name then v' else 0) events)
+
 stat :: [Country] -> [Country]
-stat events = error "not implemented"
+stat xs = map (\(Country name _) -> Country name $ countSick name xs) allCountries
 
 -- </Задачи для самостоятельного решения>
