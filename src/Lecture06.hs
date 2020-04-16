@@ -130,6 +130,9 @@ module Lecture06 where
   если нет, то докажите это (напишите, почему)
 
   *Решение*
+  Пусть существует такой контекст. Так как x x : T, то x - аппликация, т.е. x : T' -> T.
+  Но, так как мы вызываем x с аргументом x, то x : T'.
+  Так как T' !== T' -> T => противоречие.
 -}
 -- </Задачи для самостоятельного решения>
 
@@ -578,16 +581,16 @@ module Lecture06 where
 -}
 
 f :: [a] -> Int
-f = error "not implemented"
+f xs = length xs - 1
 
 g :: (a -> b)->[a]->[b]
-g = error "not implemented"
+g = map
 
 q :: a -> a -> a
-q x y = error "not implemented"
+q x y = x
 
 p :: (a -> b) -> (b -> c) -> (a -> c)
-p f g = error "not implemented"
+p f g x = g (f x)
 
 {-
   Крестики-нолики Чёрча.
@@ -624,7 +627,10 @@ createRow x y z = \case
   Third -> z
 
 createField :: Row -> Row -> Row -> Field
-createField x y z = error "not implemented"
+createField x y z = \case
+  First -> x
+  Second -> y
+  Third -> z
 
 -- Чтобы было с чего начинать проверять ваши функции
 emptyField :: Field
@@ -633,17 +639,55 @@ emptyField = createField emptyLine emptyLine emptyLine
     emptyLine = createRow Empty Empty Empty
 
 setCellInRow :: Row -> Index -> Value -> Row
-setCellInRow r i v = error "not implemented"
+setCellInRow r i v = \x -> if i == x then v else r x
 
 -- Возвращает новое игровое поле, если клетку можно занять.
 -- Возвращает ошибку, если место занято.
 setCell :: Field -> Index -> Index -> Value -> Either String Field
-setCell field i j v = error "not implemented"
+setCell field i j v = if cellValue == Empty 
+    then Right newField
+    else Left ("There is '" ++ show (field i j) ++ "' on " ++ show i ++ " " ++ show j)
+  where 
+    newField = \a -> if i == a then setCellInRow (field a) j v else field a
+    cellValue = field i j
 
 data GameState = InProgress | Draw | XsWon | OsWon deriving (Eq, Show)
 
 getGameState :: Field -> GameState
-getGameState field = error "not implemented"
+getGameState field 
+  | hasLineWithEqualValue allValues Cross = XsWon
+  | hasLineWithEqualValue allValues Zero = OsWon
+  | hasEmpty allValues = InProgress
+  | otherwise = Draw
+  where
+    allValues = getAllValues getCoordinates
+
+    anyEqual :: [Value] -> Value -> Bool
+    anyEqual xs x = any (\y -> x == y) xs
+
+    allEqual :: [Value] -> Value -> Bool
+    allEqual xs x = all (\y -> x == y) xs
+
+    hasLineWithEqualValue :: [[Value]] -> Value -> Bool
+    hasLineWithEqualValue xs x = any (\y -> allEqual y x) xs
+
+    hasEmpty :: [[Value]] -> Bool
+    hasEmpty xs = any (\y -> anyEqual y Empty) xs
+
+    getAllValues :: [[(Index, Index)]] -> [[Value]]
+    getAllValues xs = map getValues xs
+
+    getValues :: [(Index, Index)] -> [Value]
+    getValues xs = map (\(x, y) -> field x y) xs
+
+    indexes = First : Second : Third : []
+    getCoordinates :: [[(Index, Index)]]
+    getCoordinates = mainDiagonal : reverseDiagonal : (rows ++ columns)
+      where
+        mainDiagonal = zip indexes indexes
+        reverseDiagonal = zip indexes (reverse indexes)
+        rows = map (\x -> map (\y -> (x, y)) indexes) indexes
+        columns = map (\x -> map (\y -> (y, x)) indexes) indexes
 
 -- </Задачи для самостоятельного решения>
 
