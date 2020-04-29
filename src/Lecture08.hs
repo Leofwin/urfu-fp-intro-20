@@ -41,18 +41,20 @@ import qualified Data.IntMap as Map
 data Stack a = Stack [a] deriving (Eq, Show)
 
 createStack :: Stack a
-createStack = error "not implemented"
+createStack = Stack []
 
 -- Обратите внимание, что все структуры данных неизменяемые (immutable). Значит, если операция
 -- предполагает изменение структуры, то она просто должна возвращать новую уже изменённую версию.
 push :: Stack a -> a -> Stack a
-push stack x = error "not implemented"
+push (Stack xs) x = Stack $ x : xs
 
 pop :: Stack a -> Maybe (Stack a)
-pop stack = error "not implemented"
+pop (Stack []) = Nothing
+pop (Stack (x:xs)) = Just $ Stack xs
 
 peek :: Stack a -> Maybe a
-peek stack = error "not implemented"
+peek (Stack []) = Nothing
+peek (Stack (x:xs)) = Just x
 
 -- </Задачи для самостоятельного решения>
 
@@ -170,17 +172,20 @@ dequeue' (q:qs) = (q, qs)             -- возвращаем (элемент, �
 data Queue a = Queue [a] [a] deriving (Eq, Show)
 
 createQueue :: Queue a
-createQueue = error "not implemented"
+createQueue = Queue [] []
 
 enqueue :: Queue a -> a -> Queue a
-enqueue queue x = error "not implemented"
+enqueue (Queue a b) x = Queue (x:a) b
 
 -- если очередь пустая возвращает ошибку
 dequeue :: Queue a -> (a, Queue a)
-dequeue queue = error "not implemented"
+dequeue (Queue [] []) = error "Queue is empty"
+dequeue (Queue (x:a) b) = dequeue $ Queue a $ x:b
+dequeue (Queue [] (x:xs)) = (x, Queue [] xs)
 
 isEmpty :: Queue a -> Bool
-isEmpty queue = error "not implemented"
+isEmpty (Queue [] []) = True
+isEmpty _ = False
 
 -- </Задачи для самостоятельного решения>
 
@@ -376,9 +381,25 @@ emptySet = Set.intersection evenSet oddSet
   https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html?highlight=ambiguous#extension-AllowAmbiguousTypes
 -}
 
+class IntArray a where
+  replicate' :: Int -> Int -> a
+
+instance IntArray [Int] where
+  replicate' = replicate 
+
+instance IntArray (Array Int Int) where
+  replicate' n x = array (0, n) [(i, x) | i <- [0..n]]
+
+instance IntArray (Map.IntMap Int) where
+  replicate' n x = Map.fromList [(i, x) | i <- [0..n]]
+
+
 -- Сортирует массив целых неотрицательных чисел по возрастанию
 countingSort :: forall a. IntArray a => [Int] -> [Int]
-countingSort = error "not implemented"
+countingSort [] = []
+countingSort xs = concat [replicate' n x | (x, n) <- assocs counts] where
+  counts = accumArray (+) 0 bounds [(i, 1) | i <- xs]
+  bounds = (minimum xs, maximum xs)
 
 {-
   Tак можно запустить функцию сортировки с использованием конкретной реализацией массива:
