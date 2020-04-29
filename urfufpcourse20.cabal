@@ -13,9 +13,14 @@ library
                      , Lecture06.XsOs
                      , Lecture07
                      , Lecture07.Money
+                     , Lecture08
+                     , Lecture08.Time
   default-extensions:  LambdaCase
   build-depends:       base >= 4.12.0.0
                      , mtl >= 2.2.0
+                     , array >= 0.5.3.0
+                     , containers >= 0.6.0.1
+                     , random >= 1.1
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:         -Wall
@@ -35,6 +40,7 @@ executable spec
                     , QuickCheck >= 2.13.0
                     , time
                     , mikrokosmos == 0.8.0
+                    , array >= 0.5.3.0
   ghc-options:        -Wall
                       -threaded
                       -fwarn-incomplete-patterns
@@ -46,6 +52,7 @@ executable spec
                     , Lecture05Spec
                     , Lecture06Spec
                     , Lecture07Spec
+                    , Lecture08Spec
   build-tool-depends: hspec-discover:hspec-discover == 2.*
 
 executable lambda
