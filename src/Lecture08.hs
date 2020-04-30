@@ -381,13 +381,13 @@ emptySet = Set.intersection evenSet oddSet
   https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html?highlight=ambiguous#extension-AllowAmbiguousTypes
 -}
 
+-- Названия методов можно менять
 class IntArray a where
-  replicate' :: Int -> Int -> a
+  fromList :: [(Int, Int)] -> a    -- создать из списка пар [(index, value)]
+  toList :: a -> [(Int, Int)]      -- преобразовать в список пар [(index, value)]
+  update :: a -> Int -> Int -> a   -- обновить элемент по индексу
+  (#) :: a -> Int -> Int           -- получить элемент по индексу
 
-instance IntArray [Int] where
-  replicate' = replicate 
-
-instance IntArray (Array Int Int) where
   replicate' n x = array (0, n) [(i, x) | i <- [0..n]]
 
 instance IntArray (Map.IntMap Int) where
