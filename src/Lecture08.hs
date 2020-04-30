@@ -385,21 +385,46 @@ emptySet = Set.intersection evenSet oddSet
 class IntArray a where
   fromList :: [(Int, Int)] -> a    -- создать из списка пар [(index, value)]
   toList :: a -> [(Int, Int)]      -- преобразовать в список пар [(index, value)]
-  update :: a -> Int -> Int -> a   -- обновить элемент по индексу
   (#) :: a -> Int -> Int           -- получить элемент по индексу
+  update :: a -> Int -> Int -> a
+  replicate' :: Int -> Int -> a
 
+  incrementAt :: a -> Int -> a
+  incrementAt arr i = update arr i $ arr # i + 1
+
+instance IntArray [Int] where
+  replicate' = replicate
+  (#) = (!!)
+  update xs i x = update' xs i x 0 where
+    update' [] i1 y i2 = error "Index out of range"
+    update' (x:xs) i1 y i2
+      | i1 == i2  = y : xs
+      | otherwise = x : (update' xs i1 y $ i2 + 1)
+  fromList pairs = foldl (\list -> \(i, x) -> update list i x) (replicate (length pairs) 0) pairs
+  toList list = zip [i | i <- [0..(length list - 1)]] list
+
+instance IntArray (Array Int Int) where
   replicate' n x = array (0, n) [(i, x) | i <- [0..n]]
+  (#) = (!)
+  toList = assocs
+  fromList pairs = array (0, maximum [i|(i,v) <- pairs]) pairs
+  update xs i x = xs // [(i, x)]  
 
 instance IntArray (Map.IntMap Int) where
   replicate' n x = Map.fromList [(i, x) | i <- [0..n]]
+  fromList = Map.fromList
+  toList = Map.toList
+  (#) xs i = xs Map.! i
+  update xs i x = Map.update (\_ -> Just x) i xs
 
 
 -- Сортирует массив целых неотрицательных чисел по возрастанию
 countingSort :: forall a. IntArray a => [Int] -> [Int]
 countingSort [] = []
-countingSort xs = concat [replicate' n x | (x, n) <- assocs counts] where
-  counts = accumArray (+) 0 bounds [(i, 1) | i <- xs]
-  bounds = (minimum xs, maximum xs)
+countingSort xs = concat [replicate' n x | (x, n) <- toList counts] where
+  counts = foldl incrementAt startArray xs
+  startArray = fromList @a [(i, 0) | i <- [0..max]]
+  max = maximum xs
 
 {-
   Tак можно запустить функцию сортировки с использованием конкретной реализацией массива:
