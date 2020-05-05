@@ -1,6 +1,8 @@
-{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE DuplicateRecordFields, DeriveGeneric #-}
 
 module Lecture09 where
+
+import System.Random
 
 {-
   09: Монады IO и Random
@@ -149,7 +151,24 @@ showUnfinishedTodo todoList = error "not implemented"
   > Yep, that's the number!
 -}
 
+guessNumber :: Integer -> IO ()
+guessNumber expected = do
+  putStr "Your number: "
+  actual <- readLn :: IO Integer 
+  case compare actual expected of
+    LT -> do 
+      putStrLn "Too small!"
+      guessNumber expected
+    GT -> do
+      putStrLn "Too big!"
+      guessNumber expected
+    EQ -> putStrLn "Yep, that's the number!"
+
 playGuessGame :: IO ()
-playGuessGame = error "not implemented"
+playGuessGame = do
+  expected <- randomRIO (0, 100) :: IO Integer
+  guessNumber expected
+
+
 
 -- </Задачи для самостоятельного решения>
