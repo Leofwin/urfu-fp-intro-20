@@ -19,7 +19,7 @@ folder :: String
 folder = "Lecture09TestTodotdqwerqwer"
 
 createDefaultTodoList :: IO TodoList
-createDefaultTodoList = return $ createTodoList folder
+createDefaultTodoList = createTodoList folder
 
 addDefaultTodo :: TodoList -> String -> IO Id
 addDefaultTodo tdList dl = addTodo tdList (Title "buy milk") (Content "1 carton") dline
