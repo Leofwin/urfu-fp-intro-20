@@ -41,18 +41,22 @@ import qualified Data.IntMap as Map
 data Stack a = Stack [a] deriving (Eq, Show)
 
 createStack :: Stack a
-createStack = error "not implemented"
+createStack = Stack []
 
 -- Обратите внимание, что все структуры данных неизменяемые (immutable). Значит, если операция
 -- предполагает изменение структуры, то она просто должна возвращать новую уже изменённую версию.
 push :: Stack a -> a -> Stack a
-push stack x = error "not implemented"
+push (Stack xs) x = Stack (x:xs)
 
 pop :: Stack a -> Maybe (Stack a)
-pop stack = error "not implemented"
+pop (Stack xs) = case xs of
+  [] -> Nothing
+  (x:xs) -> Just (Stack xs)
 
 peek :: Stack a -> Maybe a
-peek stack = error "not implemented"
+peek (Stack xs) = case xs of
+  [] -> Nothing
+  (x:xs) -> Just x
 
 -- </Задачи для самостоятельного решения>
 
@@ -122,13 +126,13 @@ dequeue' (q:qs) = (q, qs)             -- возвращаем (элемент, �
     > a = [1, 2]            -- a -> 1 -> 2 -> nil
     > b = [1, 2] ++ [3]     -- a -> 1 -> 2 -> nil  b -> 1 -> 2 -> 3 -> nil
 
-  И мы уже не можем хранить и `a`, и `b`b в одном списке, т.к. непонятно, куда должна вести
+  И мы уже не можем хранить и `a`, и `b` в одном списке, т.к. непонятно, куда должна вести
   ссылка из 2:
 
-  a,b -> 1 -> 2 -> nil  -- xтобы работали оба списка элемент 2 должен ссылаться и на nil, и на 3
+  a,b -> 1 -> 2 -> nil  -- чтобы работали оба списка элемент 2 должен ссылаться и на nil, и на 3
               |   
               v   ????
-              3
+              3 -> nil
   
   А значит enqueue будет работать за O(n), что, конечно, очень медленно.
 
@@ -170,17 +174,20 @@ dequeue' (q:qs) = (q, qs)             -- возвращаем (элемент, �
 data Queue a = Queue [a] [a] deriving (Eq, Show)
 
 createQueue :: Queue a
-createQueue = error "not implemented"
+createQueue = Queue [] []
 
 enqueue :: Queue a -> a -> Queue a
-enqueue queue x = error "not implemented"
+enqueue (Queue left right) x = Queue (x:left) right
 
 -- если очередь пустая возвращает ошибку
 dequeue :: Queue a -> (a, Queue a)
-dequeue queue = error "not implemented"
+dequeue (Queue [] []) = error "Can't dequeue empty queue"
+dequeue (Queue left []) = dequeue (Queue [] (reverse left))
+dequeue (Queue left (x:xs)) = (x, Queue left xs)
 
 isEmpty :: Queue a -> Bool
-isEmpty queue = error "not implemented"
+isEmpty (Queue [] []) = True
+isEmpty _ = False
 
 -- </Задачи для самостоятельного решения>
 
@@ -376,9 +383,46 @@ emptySet = Set.intersection evenSet oddSet
   https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html?highlight=ambiguous#extension-AllowAmbiguousTypes
 -}
 
+class IntArray a where
+  fromList :: [(Int, Int)] -> a
+  toList :: a -> [(Int, Int)]
+  update :: a -> Int -> Int -> a
+  (#) :: a -> Int -> Int
+
+instance IntArray [Int] where
+  toList = zip [0..]
+  fromList = map snd
+  update array i v = (take i array) ++ [v] ++ (drop (i+1) array)
+  (#) array i = array !! i
+
+instance IntArray (Map.IntMap Int) where
+  toList = Map.toList
+  fromList = Map.fromList
+  update array i v = Map.insert i v array
+  (#) array i = array Map.! i
+
+instance IntArray (Array Int Int) where
+  toList = assocs
+  fromList xs = array (0, length xs - 1) xs
+  update array i v = array // [(i,v)]
+  (#) array i = array ! i
+
 -- Сортирует массив целых неотрицательных чисел по возрастанию
 countingSort :: forall a. IntArray a => [Int] -> [Int]
-countingSort = error "not implemented"
+countingSort [] = []
+countingSort xs = concatMap repeatX $ toList $ count xs
+  where
+    repeatX :: (Int,Int) -> [Int]
+    repeatX (x, k) = replicate k x
+
+    count :: [Int] -> a
+    count xs = foldl (\l x -> update l x ((l # x) + 1)) emptyCount xs
+
+    emptyCount :: a
+    emptyCount = zeros $ maximum xs + 1
+
+    zeros :: Int -> a
+    zeros k = fromList $ zip [0..] (replicate k 0)
 
 {-
   Tак можно запустить функцию сортировки с использованием конкретной реализацией массива:
@@ -395,7 +439,7 @@ sorted = countingSort @[Int] [2,2,2,3,3,3,1,1,1]
 
 -- </Задачи для самостоятельного решения>
 
-{- Сылки
+{- Сcылки
 
   - "Purely Functional Data Structures"         Chris Okasaki https://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
   - "Functional Data Structures and Algorithms" Milan Straka  http://fox.ucw.cz/papers/thesis/thesis.pdf
